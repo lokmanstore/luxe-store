@@ -1,93 +1,193 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar">
 <head>
 <meta charset="UTF-8">
-<title>Lokman Store</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CHIKOR STORE</title>
 
 <style>
-body {
-  background: linear-gradient(to right, #0f172a, #1e293b);
-  color: white;
-  font-family: Arial;
-  text-align: center;
+body{margin:0;font-family:Arial;background:#020617;color:white}
+
+header{
+padding:10px;
+text-align:center;
+background:#020617;
+cursor:pointer;
 }
 
-h1 {
-  margin-top: 20px;
+.products{
+display:grid;
+grid-template-columns:repeat(auto-fill,minmax(150px,1fr));
+gap:10px;
+padding:10px;
 }
 
-#products {
-  display: flex;
-  justify-content: center;
-  flex-wrap: wrap;
+.card{background:#1e293b;padding:10px;border-radius:10px}
+.card img{width:100%;height:120px;object-fit:cover}
+
+.cart{
+position:fixed;
+bottom:0;
+width:100%;
+background:#020617;
+padding:10px;
 }
 
-.card {
-  background: #1e293b;
-  padding: 20px;
-  margin: 15px;
-  border-radius: 12px;
-  width: 200px;
-  transition: 0.3s;
+.admin{
+display:none;
+padding:20px;
 }
 
-.card:hover {
-  transform: scale(1.05);
+.order{
+background:#1e293b;
+padding:10px;
+margin:10px 0;
+border-radius:10px;
 }
 
-button {
-  background: #22c55e;
-  border: none;
-  padding: 10px;
-  border-radius: 8px;
-  cursor: pointer;
-  color: white;
-  margin-top: 10px;
+.whatsapp{
+background:green;
+padding:10px;
+text-align:center;
+margin-top:10px;
+border-radius:10px;
+cursor:pointer;
 }
 </style>
 </head>
 
 <body>
 
-<h1>🛒 Lokman Store</h1>
+<header onclick="secretClick()">
+🔥 CHIKOR STORE
+</header>
 
-<div id="products"></div>
+<!-- STORE -->
+<div id="store">
+<section class="products" id="products"></section>
 
-<!-- Firebase v8 (يخدم بلا مشاكل) -->
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+<div class="cart">
+💰 <span id="total">0</span> DA
+<div id="cart-items"></div>
+
+<input id="name" placeholder="الاسم"><br><br>
+<input id="phone" placeholder="الهاتف"><br><br>
+<input id="address" placeholder="العنوان">
+
+<div class="whatsapp" onclick="buy()">📲 طلب</div>
+</div>
+</div>
+
+<!-- ADMIN -->
+<div class="admin" id="admin">
+<h2>📊 الطلبات</h2>
+<div id="orders"></div>
+<button onclick="back()">⬅ رجوع</button>
+</div>
 
 <script>
-const firebaseConfig = {
-  apiKey: "AIzaSyDZVaPeuR0qHeANhhdqtk5Qlh-nvJObq38",
-  authDomain: "lokman-store.firebaseapp.com",
-  projectId: "lokman-store",
-  storageBucket: "lokman-store.firebasestorage.app",
-  messagingSenderId: "188621886024",
-  appId: "1:188621886024:web:778b8da76734bafe6ebe7d"
-};
+let clickCount=0;
 
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
+function secretClick(){
+clickCount++;
+if(clickCount>=5){
+showAdmin();
+clickCount=0;
+}
+}
 
-// جلب المنتجات
-db.collection("products").get().then((querySnapshot) => {
-  const container = document.getElementById("products");
+/* PRODUCTS */
+const products=[
+{name:"T-Shirt",price:2000,img:"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab"},
+{name:"Hoodie",price:4500,img:"https://images.unsplash.com/photo-1554568218-0f1715e72254"},
+{name:"Jacket",price:6000,img:"https://images.unsplash.com/photo-1593032465171-8f0cfd2dc9b7"}
+];
 
-  container.innerHTML = "";
+let cart=[];
+let orders=JSON.parse(localStorage.getItem("orders"))||[];
+let total=0;
 
-  querySnapshot.forEach((doc) => {
-    const data = doc.data();
-
-    container.innerHTML += 
-      <div class="card">
-        <h3>${data.name}</h3>
-        <p>${data.price} DA</p>
-        <button onclick="alert('تم الشراء')">شراء</button>
-      </div>
-    ;
-  });
+function showProducts(){
+let html="";
+products.forEach((p,i)=>{
+html+=
+<div class="card">
+<img src="${p.img}">
+<h4>${p.name}</h4>
+<p>${p.price} DA</p>
+<button onclick="add(${i})">شراء</button>
+</div>;
 });
+document.getElementById("products").innerHTML=html;
+}
+
+function add(i){
+cart.push(products[i]);
+update();
+}
+
+function update(){
+total=0;
+let html="";
+cart.forEach(p=>{
+total+=p.price;
+html+=p.name+" - "+p.price+"<br>";
+});
+document.getElementById("cart-items").innerHTML=html;
+document.getElementById("total").innerText=total;
+}
+
+function buy(){
+let name=document.getElementById("name").value;
+let phone=document.getElementById("phone").value;
+let address=document.getElementById("address").value;
+
+if(!name!phone!address){
+alert("⚠️ املأ المعلومات");
+return;
+}
+
+let order={name,phone,address,total,date:new Date().toLocaleString()};
+orders.push(order);
+localStorage.setItem("orders",JSON.stringify(orders));
+
+let msg="طلب:%0A"+name+"%0A"+phone+"%0A"+address+"%0Aالمجموع:"+total;
+window.open("https://wa.me/213XXXXXXXXX?text="+msg);
+
+cart=[];
+update();
+alert("✅ تم الطلب");
+}
+
+/* ADMIN */
+function showAdmin(){
+document.getElementById("store").style.display="none";
+document.getElementById("admin").style.display="block";
+loadOrders();
+}
+
+function back(){
+document.getElementById("store").style.display="block";
+document.getElementById("admin").style.display="none";
+}
+
+function loadOrders(){
+let html="";
+orders.forEach(o=>{
+html+=
+<div class="order">
+${o.name}<br>
+${o.phone}<br>
+${o.address}<br>
+${o.total} DA<br>
+${o.date}
+</div>;
+});
+document.getElementById("orders").innerHTML=html;
+}
+
+/* INIT */
+showProducts();
 </script>
 
 </body>
