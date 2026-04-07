@@ -1,3 +1,3 @@
-function buy(product) {
-    alert("تم اختيار: " + product);
+function buy() {
+    alert("تم إضافة المنتج 🛒");
 }
