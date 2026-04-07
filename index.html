@@ -6,61 +6,64 @@
 
 <style>
 body {
-    margin: 0;
-    font-family: Arial;
-    background: linear-gradient(135deg,#0f172a,#06b6d4);
-    color: white;
+  margin: 0;
+  font-family: 'Segoe UI';
+  background: linear-gradient(135deg,#0f172a,#06b6d4);
+  color: white;
 }
 
 header {
-    text-align: center;
-    padding: 20px;
-    font-size: 30px;
+  text-align: center;
+  padding: 20px;
+  font-size: 28px;
+  font-weight: bold;
 }
 
 .products {
-    display: flex;
-    justify-content: center;
-    gap: 20px;
-    flex-wrap: wrap;
-    margin-top: 40px;
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  flex-wrap: wrap;
+  padding: 20px;
 }
 
 .card {
-    background: #1e293b;
-    padding: 20px;
-    border-radius: 15px;
-    width: 220px;
-    text-align: center;
-    transition: 0.3s;
+  background: #1e293b;
+  padding: 15px;
+  border-radius: 15px;
+  width: 220px;
+  text-align: center;
+  cursor: pointer;
+  transition: 0.3s;
 }
 
 .card:hover {
-    transform: scale(1.05);
+  transform: scale(1.05);
+  box-shadow: 0 0 20px #06b6d4;
 }
 
-img {
-    width: 100%;
-    border-radius: 10px;
+.card img {
+  width: 100%;
+  border-radius: 10px;
 }
 
 button {
-    background: #06b6d4;
-    border: none;
-    padding: 10px;
-    color: white;
-    border-radius: 10px;
-    cursor: pointer;
-    margin-top: 10px;
+  padding: 8px 12px;
+  border: none;
+  background: #06b6d4;
+  color: white;
+  border-radius: 8px;
+  cursor: pointer;
 }
 
-.cart {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    background: #1e293b;
-    padding: 10px 15px;
-    border-radius: 10px;
+#productPage {
+  display: none;
+  text-align: center;
+  padding: 30px;
+}
+
+.colors button {
+  margin: 5px;
 }
 </style>
 </head>
@@ -69,43 +72,94 @@ button {
 
 <header>🛒 Lokman Store</header>
 
-<div class="cart">
-🛍️ Cart: <span id="count">0</span>
+<!-- الصفحة الرئيسية -->
+<div id="home">
+  <div class="products" id="products"></div>
 </div>
 
-<div class="products">
+<!-- صفحة المنتج -->
+<div id="productPage">
+  <button onclick="goHome()">⬅ رجوع</button>
+  <h2 id="pName"></h2>
+  <img id="pImage" width="250">
+  <h3 id="pPrice"></h3>
 
-<div class="card">
-<img src="https://i.imgur.com/1.png">
-<h3>T-shirt black</h3>
-<p>2500 DA</p>
-<button onclick="addToCart()">شراء</button>
+  <h4>اختر اللون:</h4>
+  <div class="colors" id="pColors"></div>
+
+  <br>
+  <button onclick="addToCart()">🛒 شراء</button>
 </div>
 
-<div class="card">
-<img src="https://i.imgur.com/2.png">
-<h3>Hoodie white</h3>
-<p>4000 DA</p>
-<button onclick="addToCart()">شراء</button>
-</div>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
+import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
 
-<div class="card">
-<img src="https://i.imgur.com/3.png">
-<h3>Cap</h3>
-<p>1500 DA</p>
-<button onclick="addToCart()">شراء</button>
-</div>
+const firebaseConfig = {
+  apiKey: "AIzaSyDZVaPeuR0qHeANhhdqtk5Qlh-nvJObq38",
+  authDomain: "lokman-store.firebaseapp.com",
+  projectId: "lokman-store",
+  storageBucket: "lokman-store.firebasestorage.app",
+  messagingSenderId: "188621886024",
+  appId: "1:188621886024:web:778b8da76734bafe6ebe7d",
+};
 
-</div>
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
 
-<script>
-let count = 0;
+const productsDiv = document.getElementById("products");
 
-function addToCart(){
-    count++;
-    document.getElementById("count").innerText = count;
-    alert("تمت إضافة المنتج للسلة 🛒");
-}
+// تحميل المنتجات
+const querySnapshot = await getDocs(collection(db, "products"));
+
+querySnapshot.forEach(doc => {
+  const p = doc.data();
+
+  productsDiv.innerHTML += 
+    <div class="card" onclick="openProduct('${doc.id}')">
+      <img src="${p.image}">
+      <h3>${p.name}</h3>
+      <p>${p.price} DA</p>
+      <button>عرض</button>
+    </div>
+  ;
+});
+
+// فتح المنتج
+window.openProduct = async (id) => {
+  document.getElementById("home").style.display = "none";
+  document.getElementById("productPage").style.display = "block";
+
+  const querySnapshot = await getDocs(collection(db, "products"));
+
+  querySnapshot.forEach(doc => {
+    if(doc.id === id){
+      const p = doc.data();
+
+      document.getElementById("pName").innerText = p.name;
+      document.getElementById("pPrice").innerText = p.price + " DA";
+      document.getElementById("pImage").src = p.image;
+
+      const colorsDiv = document.getElementById("pColors");
+      colorsDiv.innerHTML = "";
+
+      p.colors.forEach(c => {
+        colorsDiv.innerHTML += <button>${c}</button>;
+      });
+    }
+  });
+};
+
+// رجوع
+window.goHome = () => {
+  document.getElementById("home").style.display = "block";
+  document.getElementById("productPage").style.display = "none";
+};
+
+// شراء
+window.addToCart = () => {
+  alert("تمت الإضافة للسلة 🔥");
+};
 </script>
 
 </body>
