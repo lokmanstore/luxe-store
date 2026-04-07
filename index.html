@@ -107,6 +107,29 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
+// اختبار
+console.log("Firebase شغال ✅");
+
+// جلب المنتجات
+const querySnapshot = await getDocs(collection(db, "products"));
+
+const container = document.getElementById("products");
+
+querySnapshot.forEach(doc => {
+  const p = doc.data();
+
+  container.innerHTML += 
+    <div style="background:#1e293b;padding:20px;margin:10px;border-radius:10px">
+      <h3>${p.name}</h3>
+      <p>${p.price} DA</p>
+    </div>
+  ;
+});
+</script>
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
 const productsDiv = document.getElementById("products");
 
 // تحميل المنتجات
