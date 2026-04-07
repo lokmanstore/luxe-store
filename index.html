@@ -53,10 +53,11 @@ button {
 
 <div id="products"></div>
 
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
-import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
+<!-- Firebase v8 (يخدم بلا مشاكل) -->
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
+<script>
 const firebaseConfig = {
   apiKey: "AIzaSyDZVaPeuR0qHeANhhdqtk5Qlh-nvJObq38",
   authDomain: "lokman-store.firebaseapp.com",
@@ -66,11 +67,11 @@ const firebaseConfig = {
   appId: "1:188621886024:web:778b8da76734bafe6ebe7d"
 };
 
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
 
-async function loadProducts() {
-  const querySnapshot = await getDocs(collection(db, "products"));
+// جلب المنتجات
+db.collection("products").get().then((querySnapshot) => {
   const container = document.getElementById("products");
 
   container.innerHTML = "";
@@ -86,9 +87,7 @@ async function loadProducts() {
       </div>
     ;
   });
-}
-
-loadProducts();
+});
 </script>
 
 </body>
