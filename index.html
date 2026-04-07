@@ -1,203 +1,102 @@
 <!DOCTYPE html>
-<html lang="ar">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>LUXE STORE</title>
+<title>Lokman Store</title>
 
 <style>
 body {
-    margin: 0;
-    background: linear-gradient(135deg,#0f172a,#020617);
-    font-family: Arial;
+    background: #0f172a;
     color: white;
+    font-family: Arial;
+    text-align: center;
 }
 
-/* HEADER */
-header {
-    display: flex;
-    justify-content: space-between;
-    padding: 20px 40px;
-    align-items: center;
+h1 {
+    margin-top: 30px;
 }
 
-.logo {
-    font-size: 35px;
-    color: #38bdf8;
-    text-shadow: 0 0 20px #38bdf8;
-}
-
-.cart-box {
-    background: #1e293b;
-    padding: 10px 20px;
-    border-radius: 15px;
-}
-
-/* PRODUCTS */
 .products {
     display: flex;
     justify-content: center;
-    gap: 25px;
     flex-wrap: wrap;
-    padding: 30px;
+    gap: 20px;
+    margin-top: 40px;
 }
 
 .card {
     background: #1e293b;
-    padding: 15px;
-    border-radius: 20px;
-    width: 230px;
-    text-align: center;
-    transition: 0.4s;
-    position: relative;
-    overflow: hidden;
+    padding: 20px;
+    border-radius: 10px;
+    width: 200px;
+    transition: 0.3s;
 }
 
 .card:hover {
-    transform: translateY(-10px) scale(1.05);
+    transform: scale(1.05);
 }
 
-.card img {
-    width: 100%;
-    border-radius: 15px;
-}
-
-.buy-btn {
-    background: linear-gradient(45deg,#38bdf8,#0ea5e9);
+button {
+    background: #22c55e;
     border: none;
-    padding: 12px;
-    width: 100%;
-    color: white;
-    border-radius: 12px;
-    cursor: pointer;
-    margin-top: 10px;
-}
-
-.buy-btn:hover {
-    box-shadow: 0 0 15px #38bdf8;
-}
-
-/* CART PANEL */
-.cart-panel {
-    position: fixed;
-    right: 0;
-    top: 0;
-    width: 300px;
-    height: 100%;
-    background: #020617;
-    padding: 20px;
-    overflow-y: auto;
-}
-
-.item {
-    background: #1e293b;
     padding: 10px;
-    margin: 10px 0;
-    border-radius: 10px;
-}
-
-.remove {
-    background: red;
-    border: none;
     color: white;
-    padding: 5px;
     cursor: pointer;
-}
-
-.whatsapp {
-    background: green;
-    padding: 12px;
-    text-align: center;
-    margin-top: 20px;
-    border-radius: 10px;
-    cursor: pointer;
+    border-radius: 5px;
 }
 </style>
 
 </head>
-
 <body>
 
-<header>
-    <h1 class="logo">🔥 LUXE STORE 🔥</h1>
-    <div class="cart-box">🛒 <span id="count">0</span></div>
-</header>
+<h1>🛒 Lokman Store</h1>
 
-<section class="products">
+<div class="products" id="products"></div>
 
-<div class="card">
-<img src="https://images.unsplash.com/photo-1521572163474-6864f9cf17ab">
-<h3>T-Shirt</h3>
-<p>2000 DA</p>
-<button class="buy-btn" onclick="add('T-Shirt',2000)">شراء</button>
-</div>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
+import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
 
-<div class="card">
-<img src="https://images.unsplash.com/photo-1554568218-0f1715e72254">
-<h3>Hoodie</h3>
-<p>4500 DA</p>
-<button class="buy-btn" onclick="add('Hoodie',4500)">شراء</button>
-</div>
+// 🔥 Firebase config تاعك
+const firebaseConfig = {
+  apiKey: "AIzaSyDZVaPeuR0qHeANhhdqtk5Qlh-nvJObq38",
+  authDomain: "lokman-store.firebaseapp.com",
+  projectId: "lokman-store",
+  storageBucket: "lokman-store.firebasestorage.app",
+  messagingSenderId: "188621886024",
+  appId: "1:188621886024:web:778b8da76734bafe6ebe7d",
+  measurementId: "G-5FLJ9FEF43"
+};
 
-<div class="card">
-<img src="https://images.unsplash.com/photo-1593032465171-8f0cfd2dc9b7">
-<h3>Jacket</h3>
-<p>6000 DA</p>
-<button class="buy-btn" onclick="add('Jacket',6000)">شراء</button>
-</div>
+// start
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
 
-</section>
+// 📦 تحميل المنتجات
+async function loadProducts() {
+    const querySnapshot = await getDocs(collection(db, "products"));
+    const container = document.getElementById("products");
 
-<!-- CART -->
-<div class="cart-panel">
-<h2>🛒 السلة</h2>
-<div id="cart-items"></div>
-<h3>المجموع: <span id="total">0</span> DA</h3>
+    container.innerHTML = "";
 
-<div class="whatsapp" onclick="sendWhatsApp()">
-📲 شراء عبر واتساب
-</div>
-</div>
+    querySnapshot.forEach((doc) => {
+        const data = doc.data();
 
-<script>
-let cart = [];
-let total = 0;
-
-function add(name, price){
-    cart.push({name, price});
-    total += price;
-    update();
-}
-
-function remove(index){
-    total -= cart[index].price;
-    cart.splice(index,1);
-    update();
-}
-
-function update(){
-    document.getElementById("count").innerText = cart.length;
-    document.getElementById("total").innerText = total;
-
-    let items = "";
-    cart.forEach((item,i)=>{
-        items += 
-        <div class="item">
-            ${item.name} - ${item.price} DA
-            <button class="remove" onclick="remove(${i})">X</button>
-        </div>;
+        container.innerHTML += 
+            <div class="card">
+                <h3>${data.name}</h3>
+                <p>${data.price} DA</p>
+                <button onclick="buy()">Buy</button>
+            </div>
+        ;
     });
-
-    document.getElementById("cart-items").innerHTML = items;
 }
 
-function sendWhatsApp(){
-    let msg = "طلب جديد:%0A";
-    cart.forEach(item=>{
-        msg += item.name + " - " + item.price + " DA%0A";
-    });
-    msg += "المجموع: " + total + " DA";
+loadProducts();
 
-    window.open("https://wa.me/21355475101?text=" + msg);
+// 🛒 زر شراء
+window.buy = function() {
+    alert("Produit ajouté 🛒");
 }
 </script>
 
